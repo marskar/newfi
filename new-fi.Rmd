@@ -1,0 +1,241 @@
+---
+title: ''
+subtitle: 'Developing hypotheses based on public databases'
+author: Shaimar
+date: 2018-12-13
+output:
+  xaringan::moon_reader:
+  lib_dir: libs
+  nature:
+    highlightStyle: github
+    highlightLines: true
+    countIncrementalSlides: false
+---
+#  Objective 
+
+
+This project is intended to help undergraduate and early graduate students to develop research projects.
+
+---
+#  Overview 
+
+
+**Using datasets to support your hypothesis**
+
+Analyzing data from NCBI GEO database
+
+-Cleaning data
+
+-Building graphs
+
+-Statistical analysis
+
+**Using web-based software to interpret data**
+
+-Looking at correlations in Ingenuity Pathway Analysis
+
+**Assessing possible implications of your hypothesis**
+
+-Looking at correlations with disease dataset
+
+-Cleaning data
+
+-Building graphs
+
+---
+#  Using datasets to support your hypothesis 
+
+
+**NCBI Gene Expression** **Ombnibus**
++ "GEO is a public functional genomics data repository supporting MIAME-compliant data submissions. Array- and sequence-based data are accepted. Tools are provided to help users query and download experiments and curated gene expression profiles"
++ *GSM3027039 (lung10.5E expression)
++ *GSM3027047(lung11.5E expression)
+![](assets/img/image2.png)
+
+---
+#  Using datasets to support your hypothesis 
+
+
++ Save http as txt
+
+![](assets/img/image4.png)
+
++ Open txt in Excel
+
+![](assets/img/image3.png)
+
+---
+#  Creating arrays from the data 
+
+```python
+import numpy as np
+from scipy  import stats
+E2E= np.array ([19.83, 67.81, 0.00])
+E1E= np.array ([4.22, 190.49, 0.00, 0.00, 64.77, 0.00, 5.15, 0.00,79.94, 19.73, 0.00, 0.00, 0.00, 174.08,4.64, 0.00])
+E2M= np.array ([5.15, 0.00, 0.00, 0.00,8.77,68.86,73.01,174.58, 0.00,    23.24, 30.73, 35.16,0.00, 126.49, 73.18, 73.03])
+E1M= np.array ([255.61, 15.31, 0.00, 52.57, 98.65, 24.65, 46.29, 217.5])
+#Combine the arrays from the different measurements into one array
+Epi= np.concatenate ([E1E] +  [E2E])
+Mes = np.concatenate ([E1M] + [E2M])
+```
+
+---
+#  Creating the error bars 
+
+```python
+#Calculate the mean 
+Epi_mean = np.mean (Epi)
+Mes_mean = np.mean ( Mes )
+#Calculate Standard deviation
+Epi_std = np.std (Epi)
+Mes_std = np.std ( Mes )
+# Error bars
+Cell_types =[ **‘Epi'** , **'** **Mes** **'** ]
+x_pos = np.arange ( len ( Cell_types ))
+meanbars =[ Epi_mean , Mes_mean ]
+error=[ Epi_std , Mes_std ]
+```
+
+---
+#  Customizing the graphs 
+
+```python
+import matplotlib.pyplot  as plt
+# Build the plot
+fig , ax = plt.subplots ()
+ax.bar ( x_pos , meanbars , color =[ **'pink'** , **'blue'** ] , yerr =error , align = **'center'** , alpha = 0.5 , ecolor = **'black'** , capsize = 10 )
+ax.set_ylabel ( **'mRNA Expression'** )
+ax.set_xticks ( x_pos )
+ax.set_xticklabels ( Cell_types )
+ax.set_title ( **'Timp2 expression in lung E11.5 epithelial and mesenchymal cells’** )
+ax.yaxis.grid ( True )
+# Save the figure and show
+plt.tight_layout ()
+plt.savefig ( **”Timp2_mRNAexpression_E11.5** **lung.png** **''** )
+plt.show ()
+#t-test and p-value
+t, p = stats.ttest_ind ( Mes,Epi , equal_var =False)
+print( **"t = "** + str (t))
+print( **"p = "** + str (p))
+```
+
+---
+#  GSM3027039 (lung10.5E expression) 
+
++ t = 0.18786636459852307
++ p = 0.8519663195255461
+![](assets/img/image5.png)
+
+---
+#  GSM3027047(lung11.5E expression) 
+
++ t =1.2774824478919518
++ p = 0.20863320356230441
+![](assets/img/image6.png)
+
+---
+#  Using web-based software to interpret data 
+
+
+**What is IPA?**
+
+**I** ngenuity Pathway Analysis ( IPA ) is a web-based software that it is used for the interpretation of omics data. You can either interpret your own data or used the data available within the software.
+![](assets/img/image7.png)
+[IPA](https://www.qiagenbioinformatics.com/products/ingenuity-pathway-analysis/)
+
+---
+#  Building pathways in IPA 
+
+.pull-left[![](assets/img/image9.png)]
+
+.pull-right[![](assets/img/image8.png)]
+
+---
+#  Using matplotlib venn to look for relationships 
+
+```python
+import matplotlib.pyplot as plt
+from matplotlib_venn import venn2
+inhibition_lung_dev =[ **'ADAM17'** , **'MMP14'** , **'MMP2'** , **'MMP9'** , **'ADAM17'** ]
+inhibition_Fibrosis_and_lung_cancer =[]
+venn2([set( inhibition_lung_dev ), set( inhibition_Fibrosis_and_lung_cancer )], set_labels = ( **'Lung development '** , **'Fibrosis and lung adenocarcinoma'** ))
+plt.title ( **'Timp2** **inhibtion** **interactions during development vs disease'** )
+plt.savefig ( **'Timp2_inhibition_interaction_dev_vs_disease'** )
+plt.print ()
+```
+
+---
+#  Using matplotlib venn to look for relationships 
+
+![](assets/img/image10.png)
+
+---
+#  Assessing possible implications 
+
+**Looking at correlations with disease dataset**
++ “ OncoLnc is a tool for interactively exploring survival correlations, and for downloading clinical data coupled to expression data for mRNAs, miRNAs, or lncRNAs .
+*(PDF)* *OncoLnc* *: Linking TCGA survival data to mRNAs, miRNAs, and* *lncRNAs* .” 
+Available from: https://www.researchgate.net/publication/308718954_OncoLnc_Linking_TCGA_survival_data_to_mRNAs_miRNAs_and_lncRNAs [accessed Dec 13 2018].
+
+![](assets/img/image11.png)
+[https://www.researchgate.net/publication/308718954_OncoLnc_Linking_TCGA_survival_data_to_mRNAs_miRNAs_and_lncRNAs](https://www.researchgate.net/publication/308718954_OncoLnc_Linking_TCGA_survival_data_to_mRNAs_miRNAs_and_lncRNAs)
+
+
+---
+#  Cleaning data from OncoLnc 
+
+```python
+import pandas as pd
+import os
+filename= os.path.abspath ( os.path.join ( **'Desktop'** , **'LUAD_7077_25_25_1.csv'** ))
+fin= open(filename)
+readCSV = pd.read_csv (fin)
+readCSV.head ()
+# Getting read of columns
+readCSV.drop ([ **"Patient"** , **"Expression"** ], axis=1, inplace =True)
+readCSV.head ()
+print( **"Number of Observations:"** , readCSV.shape [0])
+```
+![](assets/img/image12.png)
+
+---
+#  Building survival graphs 
+
+```python
+from lifelines import KaplanMeierFitter
+kmf = KaplanMeierFitter ()
+C= readCSV [ **'Status'** ]
+T= readCSV [ **'Days'** ]
+kmf.fit (T,C)
+groups= readCSV [ **'Group'** ]
+ix = (groups == **'Low'** , **"High"** )
+for r in readCSV [ **'Group'** ].unique():
+    ix= readCSV [ **'Group'** ] ==r
+    kmf.fit (T[~ix], C[~ix], label= **'Low Timp2 Expression'** )
+    ax = kmf.plot ()
+    kmf.fit (T[ix], C[ix], label= **'High Timp2 Expression'** )
+    kmf.plot (ax=ax)
+```
+
+---
+#  Survival curve of high vs Low Timp2
+
+![](assets/img/image13.png)
+
+---
+#  Summary 
+
+
+Hopefully this project helped the reader:
++ have a better idea on how to design a research question
++ How to look for evidence that could support your hypothesis
+
+---
+#  Currently working on 
+
+
+**Assessing possible implications of your hypothesis**
+
+-Statistical analysis
+
+-Graph
